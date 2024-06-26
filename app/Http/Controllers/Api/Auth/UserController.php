@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Api\Auth;
 
-use App\Helper\ResponseHelper;
+use URL;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+use App\Helper\ResponseHelper;
+use App\Mail\ResetPAsswordEmail;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -73,7 +76,7 @@ class UserController extends Controller
        $user = User::create([
            'name' => $request->input('name'),
            'email' => $request->input('email'),
-           'password' => Hash::make($request->input('password') ),
+           'password' => Hash::make($request->input('password')),
        ]);
 
        // Return a successful response
@@ -83,6 +86,33 @@ class UserController extends Controller
           'access_token' => $token,
           'token_type' => 'Bearer',
        ],201);
+
+   }
+
+   public function sendResetOtpEmail(Request $request){
+    $rules = [
+        'email' => 'required|string|email|max:255|exists:users,email',
+
+       ];
+
+       $validator = Validator::make($request->all(), $rules);
+       if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 400);
+     }
+
+
+     $otp = rand(1000,9999);
+     User::where()
+     Mail::to($request->email)->send(new ResetPasswordEmail($otp));
+     return ResponseHelper::Out('success','OTP sent to your email', '200', 200);
+
+
+   }
+
+   public function resetPassword(){
+
+
+
 
    }
 }
